@@ -9,7 +9,7 @@ if neither are implemented use a default string value.
 use visual::{vis, Visual};
 
 fn main() {
-    // The `vis!` macro wraps your type in a such a way that it can decide which trait to
+    // The `vis!` macro wraps your type in such a way that it can decide which trait to
     // use: `Display`, `Debug` or neither
     printer(vis!("hello"));       // `&str` implements `Display`, so use it
     printer(vis!(vec![1, 2, 3])); // `Vec` does not, but it impls `Debug`, so we use that
@@ -24,6 +24,6 @@ fn printer<T>(t: Visual<T>) {        // Use the `Visual` wrapper around your typ
 
 ```
 
-If neither traits are implemented, the string representation will be the one defined by the
+If neither trait is implemented, the string representation will be the one defined by the
 constant `visual::NON_DISPLAYABLE`.
 
