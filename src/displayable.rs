@@ -37,14 +37,14 @@ impl<T: Display> GetDisplayFn for &&&Wrap<T> {
     }
 }
 
-pub struct Displayable<T> {
+pub struct Visual<T> {
     inner: T,
     display_fn: Box<dyn Fn(&T) -> String>
 }
 
-impl<T> Displayable<T> {
+impl<T> Visual<T> {
     pub fn new(inner: T, display_fn: Box<dyn Fn(&T) -> String>) -> Self {
-        Displayable {
+        Self {
             inner,
             display_fn
         }
@@ -59,7 +59,7 @@ impl<T> Displayable<T> {
     }
 }
 
-impl<T> Deref for Displayable<T> {
+impl<T> Deref for Visual<T> {
     type Target = T;
 
     fn deref(&self) -> &T {
@@ -67,7 +67,7 @@ impl<T> Deref for Displayable<T> {
     }
 }
 
-impl<T> DerefMut for Displayable<T> {
+impl<T> DerefMut for Visual<T> {
     fn deref_mut(&mut self) -> &mut T {
         &mut self.inner
     }
@@ -78,14 +78,14 @@ macro_rules! vis {
     ($expr:expr) => {{
         use $crate::GetDisplayFn;
         let display_fn = (&&&&$crate::Wrap($expr)).get_display_fn();
-        $crate::Displayable::new($expr, display_fn)
+        $crate::Visual::new($expr, display_fn)
     }}
 }
 
 #[cfg(test)]
 mod tests {
     use std::fmt::Display;
-    use crate::{vis, Displayable, NON_DISPLAYABLE};
+    use crate::{vis, Visual, NON_DISPLAYABLE};
 
     struct Val;
 
@@ -107,7 +107,7 @@ mod tests {
         }
     }
 
-    fn assert_display_eq<T>(t: Displayable<T>, other: &str) {
+    fn assert_display_eq<T>(t: Visual<T>, other: &str) {
         assert_eq!(t.get_display(), other);
     }
 

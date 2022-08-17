@@ -1,4 +1,4 @@
-use show_somehow::{vis, Displayable};
+use visual::{vis, Visual};
 
 #[test]
 fn it_works() {
@@ -19,6 +19,6 @@ fn it_works() {
     assert_display_eq(vis!(&vec), "[1, 2, 3]");
 }
 
-fn assert_display_eq<T>(t: Displayable<T>, other: &str) {
+fn assert_display_eq<T>(t: Visual<T>, other: &str) {
     assert_eq!(t.get_display(), other);
 }
