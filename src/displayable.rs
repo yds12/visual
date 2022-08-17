@@ -3,9 +3,9 @@ use std::ops::{Deref, DerefMut};
 
 pub const NON_DISPLAYABLE: &'static str = "";
 
-struct Wrap<T>(T);
+pub struct Wrap<T>(pub T);
 
-trait GetDisplayFn {
+pub trait GetDisplayFn {
     type Target;
     fn get_display_fn(&self) -> Box<dyn Fn(&Self::Target) -> String>;
 }
@@ -43,18 +43,18 @@ pub struct Displayable<T> {
 }
 
 impl<T> Displayable<T> {
-    fn new(inner: T, display_fn: Box<dyn Fn(&T) -> String>) -> Self {
+    pub fn new(inner: T, display_fn: Box<dyn Fn(&T) -> String>) -> Self {
         Displayable {
             inner,
             display_fn
         }
     }
 
-    fn into_inner(self) -> T {
+    pub fn into_inner(self) -> T {
         self.inner
     }
 
-    fn get_display(&self) -> String {
+    pub fn get_display(&self) -> String {
         (self.display_fn)(&self.inner)
     }
 }
@@ -76,9 +76,9 @@ impl<T> DerefMut for Displayable<T> {
 #[macro_export]
 macro_rules! vis {
     ($expr:expr) => {{
-        use $crate::displayable::GetDisplayFn;
-        let display_fn = (&&&&$crate::displayable::Wrap($expr)).get_display_fn();
-        $crate::displayable::Displayable::new($expr, display_fn)
+        use $crate::GetDisplayFn;
+        let display_fn = (&&&&$crate::Wrap($expr)).get_display_fn();
+        $crate::Displayable::new($expr, display_fn)
     }}
 }
 
