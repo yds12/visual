@@ -22,8 +22,11 @@ pub fn get_non_displayable_string() -> &'static str {
     unsafe { NON_DISPLAYABLE }
 }
 
+// Only used by the macro
+#[doc(hidden)]
 pub struct Wrap<T>(pub T);
 
+#[doc(hidden)]
 pub trait GetDisplayFn {
     type Target;
     fn get_display_fn(&self) -> Box<dyn Fn(&Self::Target) -> String>;
