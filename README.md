@@ -30,8 +30,9 @@ fn printer<T>(t: Visual<T>) {        // Use the `Visual` wrapper around your typ
 
 ```
 
-If neither trait is implemented, the string representation will be the one defined by the
-constant `visual::NON_DISPLAYABLE`.
+If neither trait is implemented, the string representation will be the one defined by
+`visual::get_non_displayable_string()`. This default label can be initialized to a custom value
+once, by calling `visual::set_non_displayable_string("value")`.
 
 ## Credits
 

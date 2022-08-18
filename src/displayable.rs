@@ -1,7 +1,26 @@
 use std::fmt::{Debug, Display};
 use std::ops::{Deref, DerefMut};
+use std::sync::Once;
 
-pub const NON_DISPLAYABLE: &'static str = "";
+static INIT: Once = Once::new();
+static mut NON_DISPLAYABLE: &'static str = "";
+
+pub fn set_non_displayable_string(value: &'static str) -> Result<(), String> {
+    if INIT.is_completed() {
+        return Err("Attempting to initialize static variable `NON_DISPLAYABLE` twice".to_owned());
+    }
+
+    INIT.call_once(|| {
+        unsafe { NON_DISPLAYABLE = value; }
+    });
+
+    Ok(())
+}
+
+pub fn get_non_displayable_string() -> &'static str {
+    // SAFETY: we only allow mutation of this static once, using `Once`
+    unsafe { NON_DISPLAYABLE }
+}
 
 pub struct Wrap<T>(pub T);
 
@@ -14,7 +33,7 @@ impl<T> GetDisplayFn for &Wrap<T> {
     type Target = T;
     fn get_display_fn(&self) -> Box<dyn Fn(&Self::Target) -> String> {
         Box::new(|_| {
-            String::from(NON_DISPLAYABLE)
+            String::from(get_non_displayable_string())
         })
     }
 }
@@ -85,7 +104,7 @@ macro_rules! vis {
 #[cfg(test)]
 mod tests {
     use std::fmt::Display;
-    use crate::{vis, Visual, NON_DISPLAYABLE};
+    use crate::{vis, Visual, get_non_displayable_string};
 
     struct Val;
 
@@ -116,7 +135,7 @@ mod tests {
         assert_display_eq(vis!(6), "6");
         assert_display_eq(vis!(3.14), "3.14");
         assert_display_eq(vis!(vec![1, 2, 3]), "[1, 2, 3]");
-        assert_display_eq(vis!(Val), NON_DISPLAYABLE);
+        assert_display_eq(vis!(Val), get_non_displayable_string());
         assert_display_eq(vis!(ValDebug), "ValDebug");
         assert_display_eq(vis!(ValDisplayDebug), "ValDisplayDebug display");
         assert_display_eq(vis!(ValDisplay), "ValDisplay display");
@@ -124,7 +143,7 @@ mod tests {
 
     #[test]
     fn works_with_refs() {
-        assert_display_eq(vis!(&Val), NON_DISPLAYABLE);
+        assert_display_eq(vis!(&Val), get_non_displayable_string());
         assert_display_eq(vis!(&ValDebug), "ValDebug");
         assert_display_eq(vis!(&ValDisplayDebug), "ValDisplayDebug display");
         assert_display_eq(vis!(&ValDisplay), "ValDisplay display");
