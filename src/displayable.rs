@@ -5,6 +5,8 @@ use std::sync::Once;
 static INIT: Once = Once::new();
 static mut NON_DISPLAYABLE: &'static str = "";
 
+/// Set the `String` that should be used to display [`Visual`] objects that do
+/// not implement neither [`Display`] nor [`Debug`].
 pub fn set_non_displayable_string(value: &'static str) -> Result<(), String> {
     if INIT.is_completed() {
         return Err("Attempting to initialize static variable `NON_DISPLAYABLE` twice".to_owned());
@@ -17,6 +19,8 @@ pub fn set_non_displayable_string(value: &'static str) -> Result<(), String> {
     Ok(())
 }
 
+/// Get the `String` that should be used to display [`Visual`] objects that do
+/// not implement neither [`Display`] nor [`Debug`].
 pub fn get_non_displayable_string() -> &'static str {
     // SAFETY: we only allow mutation of this static once, using `Once`
     unsafe { NON_DISPLAYABLE }
@@ -26,6 +30,7 @@ pub fn get_non_displayable_string() -> &'static str {
 #[doc(hidden)]
 pub struct Wrap<T>(pub T);
 
+// Only used by the macro
 #[doc(hidden)]
 pub trait GetDisplayFn {
     type Target;
@@ -59,12 +64,16 @@ impl<T: Display> GetDisplayFn for &&&Wrap<T> {
     }
 }
 
+/// A value that can be displayed either via `Display` or `Debug`, or with a
+/// default representation.
 pub struct Visual<T> {
     inner: T,
     display_fn: Box<dyn Fn(&T) -> String>
 }
 
 impl<T> Visual<T> {
+    // Should only be used by the macro
+    #[doc(hidden)]
     pub fn new(inner: T, display_fn: Box<dyn Fn(&T) -> String>) -> Self {
         Self {
             inner,
@@ -72,10 +81,12 @@ impl<T> Visual<T> {
         }
     }
 
+    /// Extract the inner value
     pub fn into_inner(self) -> T {
         self.inner
     }
 
+    /// Get a `String` that represents this object
     pub fn get_display(&self) -> String {
         (self.display_fn)(&self.inner)
     }
@@ -95,6 +106,15 @@ impl<T> DerefMut for Visual<T> {
     }
 }
 
+/// Wrap an object into the [`Visual`] type, which will choose a function to
+/// obtain a visual representation of this object using these rules:
+///
+/// * if the object implements `Display`, use that;
+/// * otherwise, if it implements `Debug`, use that;
+/// * otherwise use a default representation.
+///
+/// The default representation can be changed with the function
+/// [`set_non_displayable_string`].
 #[macro_export]
 macro_rules! vis {
     ($expr:expr) => {{
